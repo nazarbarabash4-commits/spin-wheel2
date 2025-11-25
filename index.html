@@ -143,19 +143,85 @@
   }
 
   /* ===== Модалка ===== */
-  .backdrop{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;padding:20px;z-index:20;}
+  .backdrop{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.55);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    z-index:20;
+  }
   .show{display:flex}
+
   .modal{
-    width:min(520px,96vw);background:linear-gradient(180deg,#0f3a2c,#0b261d);
-    border:1px solid #114536;border-radius:20px;padding:22px;box-shadow:0 20px 60px rgba(0,0,0,.6);text-align:center;
+    width:min(520px,96vw);
+    background:linear-gradient(135deg,#ff9ecb,#a88bff,#7fd8ff);
+    border-radius:26px;
+    padding:26px 22px;
+    box-shadow:0 25px 70px rgba(0,0,0,.45);
+    text-align:center;
+    position:relative;
+    border:2px solid rgba(255,255,255,0.25);
   }
-  .modal h2{margin:0 0 8px;font-size:clamp(22px,6vw,28px)}
-  .winline{font-weight:900;font-size:clamp(22px,7vw,36px);margin:10px 0 16px}
+
+  /* Заголовок */
+  .modal h2{
+    margin:0 0 10px;
+    font-size:clamp(22px,6vw,30px);
+    color:white;
+  }
+
+  /* Основний текст */
+  .winline{
+    font-weight:900;
+    font-size:clamp(20px,6.5vw,34px);
+    margin:10px 0 20px;
+    color:#ffffff;
+    line-height:1.25;
+    text-shadow:0 4px 12px rgba(0,0,0,.35);
+  }
+
+  /* Кнопка */
   .cta{
-    margin-top:8px;padding:14px 16px;border-radius:12px;border:0;cursor:pointer;
-    background:linear-gradient(180deg,#25f28e,#1dd181);color:#01351e;font-weight:900;font-size:18px;box-shadow:0 8px 0 #0b8b53,0 16px 28px rgba(0,0,0,.35);
+    margin-top:6px;
+    padding:14px 22px;
+    border-radius:14px;
+    border:0;
+    cursor:pointer;
+    background:linear-gradient(180deg,#ffd56b,#ffb703);
+    color:#5a2c00;
+    font-weight:900;
+    font-size:18px;
+    box-shadow:
+      0 10px 0 #d18a00,
+      0 18px 35px rgba(0,0,0,.35);
+    transition:transform .15s ease;
   }
-  .closeX{position:absolute;right:12px;top:10px;width:36px;height:36px;border-radius:10px;background:#0f3a2c;border:1px solid #1b5b46;color:#9fe9c7;font-weight:900;cursor:pointer;}
+  .cta:active{
+    transform:translateY(2px);
+    box-shadow:
+      0 6px 0 #d18a00,
+      0 12px 25px rgba(0,0,0,.35);
+  }
+
+/* Кнопка закриття */
+  .closeX{
+    position:absolute;
+    right:14px;
+    top:14px;
+    width:38px;
+    height:38px;
+    border-radius:12px;
+    background:rgba(255,255,255,.25);
+    border:1px solid rgba(255,255,255,.4);
+    color:white;
+    font-weight:900;
+    cursor:pointer;
+    backdrop-filter:blur(6px);
+  }
+  
 </style>
 </head>
 <body>
