@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Spin & Win</title>
+<style>
+  :root{ --muted:#b7c3c0 }
+  *{box-sizing:border-box}
+
+  /* ===== ФОН ===== */
+  body{
+    margin:0;
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    color:#fff;
+    background:#000 url('bg.png') center/cover no-repeat;
+    background-attachment: fixed;
+    min-height:100svh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    -webkit-tap-highlight-color:transparent;
+    position:relative;
+    overflow:hidden;
+  }
+  body::before{content:"";position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:0;}
+
+   /* Мобільний фон */
+  @media (max-width: 640px){
+    body{
+      background-image: url('bg-mobile.png');
+      background-attachment: scroll; /* щоб не смикалось на iOS */
+    }
+  }
+
+  .wrap{position:relative;z-index:1;width:min(1100px,96vw);padding:clamp(12px,3vw,28px);text-align:center}
+  h1{margin:.2em 0 .3em;font-size:clamp(26px,6.4vw,48px);line-height:1.05}
+  .sub{margin:0 0 12px;color:var(--muted);font-size:clamp(14px,4vw,18px)}
+  .board{margin:18px auto 0;display:grid;place-items:center;gap:18px}
+
+  /* ===== Колесо ===== */
+  .wheel-wrap{position:relative;width:clamp(300px,80vw,560px);aspect-ratio:1/1;}
+  .wheel{
+    position:absolute;inset:0;display:block;width:100%;height:100%;
+    object-fit:contain;user-select:none;pointer-events:none;
+    filter:drop-shadow(0 18px 40px rgba(0,0,0,.45));
+    transition:transform 3.2s cubic-bezier(.17,.89,.15,1);will-change:transform;z-index:1;
+  }
+
+  /* Стрілка (вниз) */
+  .pointer{
+    position:absolute;
+    left:50%;
+    bottom:64%;                      /* трохи нижче краю, щоб не “вилазила” */
+    transform:translateX(-50%) rotate(180deg);
+    width:0; height:0;
+    border-left:14px solid transparent;
+    border-right:14px solid transparent;
+    border-top:24px solid #d8bd0d;
+    filter:drop-shadow(0 -3px 0 #a7a510) drop-shadow(0 -8px 16px rgba(0,0,0,.45));
+    z-index:5;
+  }
+
+  @media (max-width: 640px){
+    .pointer{
+      bottom:64.5%;                      /* на телефоні трохи нижче, бо колесо менше */
+      border-left:12px solid transparent;
+      border-right:12px solid transparent;
+      border-top:20px solid #d8bd0d;
+    }
+  }
+
+  /* Центральна кнопка */
+  .hub{position:absolute;inset:0;display:grid;place-items:center;z-index:4;pointer-events:none}
+  .btn{
+    pointer-events:auto;display:grid;place-items:center;width:29%;aspect-ratio:1/1;border-radius:50%;
+    background:radial-gradient(circle at 35% 35%, #b49cff, #6b49ff);
+    box-shadow:0 10px 0 #3a1fb7, 0 18px 40px rgba(0,0,0,.45);
+    color:#fff;font-weight:900;font-size:clamp(16px,4.4vw,24px);
+    border:none;cursor:pointer;text-transform:uppercase;
+  }
+  .btn:active{transform:translateY(2px);box-shadow:0 8px 0 #3a1fb7, 0 16px 34px rgba(0,0,0,.45)}
+
+  .hint{color:var(--muted);font-size:clamp(12px,3.6vw,16px)}
+
+  /* ===== Яйця (бейджі) ===== */
+  .eggs{
+    position:absolute;
+    right:62%;
+    top:-2%;
+    width:82%;
+    max-width:260px;
+    aspect-ratio:4/3;
+    pointer-events:none;
+    z-index:3;
+  }
+  .egg{
+    position:absolute; bottom:0; right:0;
+    width:56%;
+    transform-origin:50% 100%;
+    opacity:0;
+    transform:translateY(12px) scale(.9) rotate(-6deg);
+    transition:opacity .45s ease, transform .45s ease;
+    user-select:none;
+    /* Золоте світіння */
+    filter: drop-shadow(0 0 5px rgba(255,215,0,0.8))
+            drop-shadow(0 0 20px rgba(255,215,0,0.6))
+            drop-shadow(0 0 40px rgba(255,200,0,0.4));
+  }
+  .egg.show{opacity:1; transform:translateY(0) scale(1) rotate(-17deg);}
+  .egg.red   {right:22%; z-index:1;}
+  .egg.orange{right:10%; z-index:2; transform:translateY(12px) scale(.9) rotate(-3deg);}
+  .egg.orange.show{transform:translateY(0) scale(1) rotate(15deg);}
+
+
+  /* ===== Модалка ===== */
+  /* ===== МОДАЛКА В СТИЛІ НОВОГО ФОНУ ===== */
+  .backdrop{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.55);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    z-index:20;
+  }
+  .show{display:flex}
+
+  .modal{
+    width:min(520px,96vw);
+    background:linear-gradient(135deg,#ff9ecb,#a88bff,#7fd8ff);
+    border-radius:26px;
+    padding:26px 22px;
+    box-shadow:0 25px 70px rgba(0,0,0,.45);
+    text-align:center;
+    position:relative;
+    border:2px solid rgba(255,255,255,0.25);
+  }
+
+  /* Заголовок */
+  .modal h2{
+    margin:0 0 10px;
+    font-size:clamp(22px,6vw,30px);
+    color:white;
+  }
+
+  /* Основний текст */
+  .winline{
+    font-weight:900;
+    font-size:clamp(20px,6.5vw,34px);
+    margin:10px 0 20px;
+    color:#ffffff;
+    line-height:1.25;
+    text-shadow:0 4px 12px rgba(0,0,0,.35);
+  }
+
+  /* Кнопка */
+  .cta{
+    margin-top:6px;
+    padding:14px 22px;
+    border-radius:14px;
+    border:0;
+    cursor:pointer;
+    background:linear-gradient(180deg,#ffd56b,#ffb703);
+    color:#5a2c00;
+    font-weight:900;
+    font-size:18px;
+    box-shadow:
+      0 10px 0 #d18a00,
+      0 18px 35px rgba(0,0,0,.35);
+    transition:transform .15s ease;
+  }
+  .cta:active{
+    transform:translateY(2px);
+    box-shadow:
+      0 6px 0 #d18a00,
+      0 12px 25px rgba(0,0,0,.35);
+  }
+
+/* Кнопка закриття */
+  .closeX{
+    position:absolute;
+    right:14px;
+    top:14px;
+    width:38px;
+    height:38px;
+    border-radius:12px;
+    background:rgba(255,255,255,.25);
+    border:1px solid rgba(255,255,255,.4);
+    color:white;
+    font-weight:900;
+    cursor:pointer;
+    backdrop-filter:blur(6px);
+  }
+
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <h1 id="t_title">SPIN THE WHEEL</h1>
+    <p class="sub" id="t_sub">У тебе є 3 спроби! Не пропусти можливість!</p>
+
+    <div class="board">
+      <div class="wheel-wrap">
+        <div class="pointer"></div>
+
+        <!-- PNG колесо -->
+        <img id="wheel" class="wheel" src="wheel.png" alt="Wheel">
+
+        <!-- Яйця/бейджі -->
+        <div class="eggs" aria-hidden="true">
+          <img id="eggRed"    class="egg red"    src="egg-red.png"    alt="" draggable="false">
+          <img id="eggOrange" class="egg orange" src="egg-orange.png" alt="" draggable="false">
+        </div>
+
+        <!-- Центр-кнопка -->
+        <div class="hub"><button id="spinBtn" class="btn">Spin</button></div>
+      </div>
+
+      <div id="hint" class="hint">LEGENDS</div>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div id="backdrop" class="backdrop" role="dialog" aria-modal="true" aria-labelledby="winTitle">
+    <div class="modal">
+      <button id="closeX" class="closeX">✕</button>
+      <h2 id="t_modal_title">🎉 Вітаємо!</h2>
+      <div id="t_modal_text" class="winline">Ви виграли 150% до депозиту та 250 фріспінів!</div>
+      <button id="claimBtn" class="cta">Забрати виграш</button>
+    </div>
+  </div>
+
+<script>
+(() => {
+  /* ---------- I18N (скорочено) ---------- */
+  const I18N = {
+    uk:{title:'SPIN THE WHEEL',sub:'У тебе є 3 спроби! Не пропусти можливість!',spin:'Spin',hintStart:'LEGENDS',
+        tryAgainHint:'Ще раз спробуй — майже вийшло!',winHint:'Вітаємо! Ти виграв 🎁',
+        modalTitle:'🎉 Вітаємо!',modalText:'Ви виграли 150% до депозиту та 250 фріспінів!',claim:'Забрати виграш'},
+    de:{title:'DREHE DAS RAD',sub:'Du hast 3 Versuche! Verpasse deine Chance nicht!',spin:'Drehen',hintStart:'LEGENDS',
+        tryAgainHint:'Versuch’s noch einmal — fast geschafft!',winHint:'Glückwunsch! Du hast gewonnen 🎁',
+        modalTitle:'🎉 Glückwunsch!',modalText:'Du hast 150% auf die Einzahlung und 250 Freispiele gewonnen!',claim:'Bonus abholen'},
+    en:{title:'SPIN THE WHEEL',sub:'You have 3 attempts! Don’t miss your chance!',spin:'Spin',hintStart:'LEGENDS',
+        tryAgainHint:'Try again — almost there!',winHint:'Congrats! You’ve won 🎁',
+        modalTitle:'🎉 Congratulations!',modalText:'You won 150% deposit boost and 250 free spins!',claim:'Claim reward'}
+  };
+  function langFromCountry(cc){cc=(cc||'').toUpperCase();if(['DE','AT','CH','LI','LU'].includes(cc))return'de';return null;}
+  async function detectLang(){
+    const urlLang=new URLSearchParams(location.search).get('lang');
+    if(urlLang&&I18N[urlLang])return urlLang;
+    try{
+      const r=await fetch('https://ipapi.co/json/',{cache:'no-store'});if(r.ok){const d=await r.json();
+        const cc=d.country||d.country_code;const byCC=langFromCountry(cc);if(byCC)return byCC;
+        if((d.languages||'').toLowerCase().includes('de'))return'de';
+      }
+    }catch(_){}
+    const nav=(navigator.language||'').toLowerCase();
+    if(nav.startsWith('de'))return'de'; if(nav.startsWith('en'))return'en';
+    return 'uk';
+  }
+  function applyI18n(code){
+    const t=I18N[code]||I18N.uk;
+    document.getElementById('t_title').textContent=t.title;
+    document.getElementById('t_sub').textContent=t.sub;
+    document.getElementById('spinBtn').textContent=t.spin;
+    document.getElementById('hint').textContent=t.hintStart;
+    document.getElementById('t_modal_title').textContent=t.modalTitle;
+    document.getElementById('t_modal_text').textContent=t.modalText;
+    document.getElementById('claimBtn').textContent=t.claim;
+    document.documentElement.lang=code;
+    return t;
+  }
+
+  /* ---------- Колесо (1-й спін TRY AGAIN, 2-й — WIN 250 FS) ---------- */
+  const INDEX_TRY  = 1; // червоний TRY AGAIN
+  const INDEX_WIN  = 5; // 250 FS (твій сектор зверху на другому спіні)
+  const EXTRA_SPINS = 5;
+
+  const wheel   = document.getElementById('wheel');
+  const spinBtn = document.getElementById('spinBtn');
+  const hint    = document.getElementById('hint');
+  const backdrop= document.getElementById('backdrop');
+  const closeX  = document.getElementById('closeX');
+  const claimBtn= document.getElementById('claimBtn');
+
+  // Eggs
+  const eggRed    = document.getElementById('eggRed');
+  const eggOrange = document.getElementById('eggOrange');
+
+  let spinning=false, clicks=0, rot=0, T=I18N.uk;
+
+  function angleForIndex(idx){
+    const sectorCenter = idx * 45;                // кут центра сектору
+    return 360*EXTRA_SPINS + (360 - sectorCenter);
+  }
+  function spinTo(idx, cb){
+    spinning=true; rot += angleForIndex(idx);
+    wheel.style.transform = `rotate(${rot}deg)`;
+    wheel.addEventListener('transitionend', ()=>{ spinning=false; cb && cb(); }, {once:true});
+  }
+  function openModal(){ backdrop.classList.add('show'); }
+  function closeModal(){ backdrop.classList.remove('show'); }
+
+  spinBtn.addEventListener('click', () => {
+    if (spinning) return;
+    clicks++;
+
+    if (clicks === 1){
+      hint.textContent = T.tryAgainHint;
+      spinTo(INDEX_TRY, () => {
+        // показуємо червоне яйце
+        eggRed.classList.add('show');
+      });
+    } else if (clicks === 2){
+      spinTo(INDEX_WIN, () => {
+        // додаємо помаранчеве яйце
+        eggOrange.classList.add('show');
+        hint.textContent = T.winHint;
+
+        // показуємо модалку через 2 секунди
+        setTimeout(() => {
+          openModal();
+        }, 2000);
+      });
+    }
+  });
+
+  closeX.addEventListener('click', closeModal);
+  backdrop.addEventListener('click', e => { if (e.target === backdrop) closeModal(); });
+  claimBtn.addEventListener('click', () => { closeModal(); /* тут можна зробити редирект */ });
+
+  // Ініціалізація мови
+  (async () => { T = applyI18n(await detectLang()); })();
+
+  // preload
+  ['wheel.png','egg-red.png','egg-orange.png'].forEach(s=>{const i=new Image();i.src=s;});
+})();
+</script>
+</body>
+</html>
