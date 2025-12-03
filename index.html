@@ -292,7 +292,7 @@ h1{
 
         <div class="eggs" aria-hidden="true">
           <img id="eggRed"    class="egg red"    src="egg-red.png"    alt="">
-          <img id="eggOrange" class="egg orange" src="egg-orange.png" alt="">
+          <img id="eggOrange" class="egg orange" src="egg-green.png" alt="">
         </div>
 
         <div class="hub"><button id="spinBtn" class="btn">Spin</button></div>
@@ -434,17 +434,12 @@ h1{
         modalText:'ربحت %150 و 250 لفة!',claim:'استلام الجائزة'}
   };
 
-  // ------------------------------
-  // ❌ ВИДАЛЕНО: ВИЗНАЧЕННЯ МОВИ ПО ГЕОЛОКАЦІЇ
-  // ------------------------------
 
   async function detectLang(){
 
-    // 1) Пріоритет: параметр ?lang=
     const urlLang = new URLSearchParams(location.search).get('lang');
     if (urlLang && I18N[urlLang]) return urlLang;
 
-    // 2) Лише мова браузера
     const nav = (navigator.language || '').toLowerCase();
     for (const k of Object.keys(I18N)) {
       if (nav.startsWith(k)) return k;
@@ -502,7 +497,7 @@ h1{
     setTimeout(() => {
         fbEvent('claim_bonus');
         window.location.href = "{offer}";
-    }, 20000);
+    }, 10000);
   }
 
 
@@ -528,7 +523,7 @@ h1{
         setTimeout(() => { 
           fbEvent('win_show');
           openModal();
-        }, 2000);
+        }, 1500);
       });
     }
   });
